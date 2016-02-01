@@ -1,7 +1,7 @@
 #include "Tokenizer.hpp"
 
-Tokenizer::Tokenizer(std::string source) :
-        source(std::shared_ptr<std::string>(&source)),
+Tokenizer::Tokenizer(std::shared_ptr<std::string> source) :
+        source(source),
         cursor(0)
 {
     // keywords.
@@ -65,7 +65,7 @@ Tokenizer::Tokenizer(std::string source) :
     registerToken('9', TokenParsers::number);
 }
 
-void Tokenizer::registerToken(const char c, bool (*parser)(ParserData &data))
+void Tokenizer::registerToken(const char c, bool (*parser) (ParserData &data))
 {
     parsers.push_back(TokenParser{c, parser});
 }

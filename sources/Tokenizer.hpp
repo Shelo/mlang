@@ -40,7 +40,7 @@ private:
     size_t cursor;
 
 public:
-    Tokenizer(std::string source);
+    Tokenizer(std::shared_ptr<std::string> source);
 
     void registerToken(const char c, bool (*parser) (ParserData &data));
     void registerToken(const char c, std::function<bool (ParserData &data)> parser);

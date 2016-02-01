@@ -14,7 +14,7 @@ int main(int argc, const char *argv[])
             codeStream << source.rdbuf();
             source.close();
 
-            std::string code(codeStream.str());
+            auto code = std::make_shared<std::string>(codeStream.str());
 
             Tokenizer tokenizer(code);
             tokenizer.process();
@@ -23,7 +23,7 @@ int main(int argc, const char *argv[])
         }
 
     } else {
-        std::cout << "No file passed." << std::endl;
+        std::cout << "Needs an input file." << std::endl;
     }
 
     return 0;

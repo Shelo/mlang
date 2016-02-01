@@ -27,8 +27,11 @@ public:
     void setType(Token type);
 
     void push();
+
     std::string substring(size_t i, std::string *code);
+
     void debug(std::string *code);
+
     size_t getCurrentIndex();
 };
 
