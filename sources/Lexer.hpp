@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <map>
 
 #include "TokenBuffer.hpp"
 #include "Types.hpp"
@@ -31,16 +32,17 @@ struct TokenParser
     std::function<bool (ParserData &data)> parser;
 };
 
-class Tokenizer
+class Lexer
 {
 private:
     std::shared_ptr<std::string> source;
     std::vector<TokenParser> parsers;
-    TokenBuffer buffer;
+    std::shared_ptr<TokenBuffer> buffer;
+    std::map<std::string, ParserData> keywords;
     size_t cursor;
 
 public:
-    Tokenizer(std::shared_ptr<std::string> source);
+    Lexer(std::shared_ptr<std::string> source);
 
     void registerToken(const char c, bool (*parser) (ParserData &data));
     void registerToken(const char c, std::function<bool (ParserData &data)> parser);
@@ -49,6 +51,10 @@ public:
     void parseToken(char &c);
     void parseKeyword(char &c, ParserData &data);
     bool testParsers(char &c, ParserData &data);
+
+    std::shared_ptr<TokenBuffer> & getTokens();
+
+    void registerKeyword(std::string keyword, Token token);
 };
 
 

@@ -1,27 +1,30 @@
-#include "Tokenizer.hpp"
+#include "Lexer.hpp"
 
-Tokenizer::Tokenizer(std::shared_ptr<std::string> source) :
+Lexer::Lexer(std::shared_ptr<std::string> source) :
         source(source),
-        cursor(0)
+        cursor(0),
+        buffer(std::make_shared<TokenBuffer>())
 {
     // keywords.
-    registerToken('a', TokenParsers::keyword(Token::KW_ANNOTATION, "annotation"));
-    registerToken('b', TokenParsers::keyword(Token::KW_BOOL, "bool"));
-    registerToken('c', TokenParsers::keyword(Token::KW_CHAR, "char"));
-    registerToken('c', TokenParsers::keyword(Token::KW_CLASS, "class"));
-    registerToken('d', TokenParsers::keyword(Token::KW_STRING, "double"));
-    registerToken('f', TokenParsers::keyword(Token::KW_FALSE, "false"));
-    registerToken('f', TokenParsers::keyword(Token::KW_FLOAT, "float"));
-    registerToken('i', TokenParsers::keyword(Token::KW_IMPORT, "import"));
-    registerToken('i', TokenParsers::keyword(Token::KW_INT, "int"));
-    registerToken('n', TokenParsers::keyword(Token::KW_NEW, "new"));
-    registerToken('n', TokenParsers::keyword(Token::KW_NULL, "null"));
-    registerToken('r', TokenParsers::keyword(Token::KW_RETURN, "return"));
-    registerToken('s', TokenParsers::keyword(Token::KW_STRING, "string"));
-    registerToken('s', TokenParsers::keyword(Token::KW_STRING, "static"));
-    registerToken('t', TokenParsers::keyword(Token::KW_TRUE, "true"));
-    registerToken('v', TokenParsers::keyword(Token::KW_VOID, "void"));
-    registerToken('u', TokenParsers::keyword(Token::KW_UNSIGNED, "unsigned"));
+    registerKeyword("class", Token::KW_CLASS);
+    registerKeyword("module", Token::KW_MODULE);
+    registerKeyword("import", Token::KW_IMPORT);
+    registerKeyword("annotation", Token::KW_ANNOTATION);
+    registerKeyword("annotation", Token::KW_ANNOTATION);
+    registerKeyword("bool", Token::KW_BOOL);
+    registerKeyword("char", Token::KW_CHAR);
+    registerKeyword("double", Token::KW_DOUBLE);
+    registerKeyword("false", Token::KW_FALSE);
+    registerKeyword("float", Token::KW_FLOAT);
+    registerKeyword("int", Token::KW_INT);
+    registerKeyword("new", Token::KW_NEW);
+    registerKeyword("null", Token::KW_NULL);
+    registerKeyword("return", Token::KW_RETURN);
+    registerKeyword("string", Token::KW_STRING);
+    registerKeyword("static", Token::KW_STATIC);
+    registerKeyword("true", Token::KW_TRUE);
+    registerKeyword("void", Token::KW_VOID);
+    registerKeyword("unsigned", Token::KW_UNSIGNED);
 
     // start/stop carets.
     registerToken('[', TokenParsers::symbol(Token::BRACKET_START));
@@ -32,6 +35,7 @@ Tokenizer::Tokenizer(std::shared_ptr<std::string> source) :
     registerToken('}', TokenParsers::symbol(Token::CURLY_BRACE_STOP));
 
     // punctuation.
+    registerToken(':', TokenParsers::symbol(Token::COLON));
     registerToken(';', TokenParsers::symbol(Token::SEMI_COLON));
     registerToken(',', TokenParsers::symbol(Token::COMMA));
     registerToken('.', TokenParsers::symbol(Token::DOT));
@@ -65,17 +69,27 @@ Tokenizer::Tokenizer(std::shared_ptr<std::string> source) :
     registerToken('9', TokenParsers::number);
 }
 
-void Tokenizer::registerToken(const char c, bool (*parser) (ParserData &data))
+void Lexer::registerToken(const char c, bool (*parser) (ParserData &data))
 {
     parsers.push_back(TokenParser{c, parser});
 }
 
-void Tokenizer::registerToken(const char c, std::function<bool (ParserData &data)> parser)
+void Lexer::registerToken(const char c, std::function<bool (ParserData &data)> parser)
 {
     parsers.push_back(TokenParser{c, parser});
 }
 
-void Tokenizer::process()
+void Lexer::registerKeyword(std::string keyword, Token token)
+{
+    ParserData data;
+
+    data.length = keyword.size();
+    data.type = token;
+
+    keywords[keyword] = data;
+}
+
+void Lexer::process()
 {
     while (cursor < source->length()) {
         size_t last = cursor;
@@ -89,10 +103,10 @@ void Tokenizer::process()
         }
     }
 
-    buffer.debug(&*source);
+    buffer->debug(&*source);
 }
 
-void Tokenizer::parseToken(char &c)
+void Lexer::parseToken(char &c)
 {
     ParserData data;
     data.source = &*source;
@@ -104,20 +118,20 @@ void Tokenizer::parseToken(char &c)
     }
 
     // set values to the buffer.
-    buffer.setPosition(cursor + data.offsetStart);
-    buffer.setLength(data.length);
-    buffer.setType(data.type);
+    buffer->setPosition(cursor + data.offsetStart);
+    buffer->setLength(data.length);
+    buffer->setType(data.type);
 
     // just for debugging.
     if (data.type != Token::WHITESPACE) {
         // push data as a token index.
-        buffer.push();
+        buffer->push();
     }
 
     cursor += data.length + data.offsetStart + data.offsetStop;
 }
 
-bool Tokenizer::testParsers(char &c, ParserData &data)
+bool Lexer::testParsers(char &c, ParserData &data)
 {
     for (size_t i = 0; i < parsers.size(); ++i) {
         if (parsers[i].c == c) {
@@ -130,7 +144,7 @@ bool Tokenizer::testParsers(char &c, ParserData &data)
     return false;
 }
 
-void Tokenizer::parseKeyword(char &c, ParserData &data)
+void Lexer::parseKeyword(char &c, ParserData &data)
 {
     size_t tempPosition = data.cursor;
 
@@ -144,6 +158,7 @@ void Tokenizer::parseKeyword(char &c, ParserData &data)
             case ',':
             case '.':
             case ';':
+            case ':':
             case '\n':
                 finish = true;
                 break;
@@ -152,8 +167,19 @@ void Tokenizer::parseKeyword(char &c, ParserData &data)
         }
     }
 
-    data.type = Token::KEYWORD;
-
     // set the length as the difference.
     data.length = tempPosition - data.cursor;
+
+    auto registry = keywords[data.source->substr(data.cursor, data.length)];
+
+    if (registry.type != Token::NONE) {
+        data.type = registry.type;
+    } else {
+        data.type = Token::KEYWORD;
+    }
+}
+
+std::shared_ptr<TokenBuffer> &Lexer::getTokens()
+{
+    return buffer;
 }

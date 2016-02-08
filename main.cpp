@@ -2,7 +2,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "Tokenizer.hpp"
+#include "Parser.h"
+#include "Lexer.hpp"
 
 int main(int argc, const char *argv[])
 {
@@ -16,8 +17,11 @@ int main(int argc, const char *argv[])
 
             auto code = std::make_shared<std::string>(codeStream.str());
 
-            Tokenizer tokenizer(code);
+            Lexer tokenizer(code);
             tokenizer.process();
+
+            Parser parser(tokenizer.getTokens());
+            parser.process();
         } else {
             std::cout << "No such file or directory." << std::endl;
         }

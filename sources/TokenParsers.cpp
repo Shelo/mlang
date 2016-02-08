@@ -1,33 +1,5 @@
 #include "TokenParsers.hpp"
 
-bool TokenParsers::matchingParser(size_t cursor, std::string *code, const std::string &keyword, size_t length)
-{
-    for (size_t i = 1; i < length; i++) {
-        if (cursor + i >= code->length() || code->at(cursor + i) != keyword.at(i)) {
-            return false;
-        }
-    }
-
-    // check that this keyword is bounded.
-    if (cursor + length < code->length()) {
-        switch (code->at(cursor + length)) {
-            case ' ':
-            case '\n':
-            case '\t':
-            case ';':
-            case '(':
-            case ')':
-            case ':':
-            case ',':
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    return true;
-}
-
 bool TokenParsers::whitespace(ParserData &data)
 {
     size_t tempPosition = data.cursor;
@@ -131,20 +103,6 @@ std::function<bool (ParserData &data)> TokenParsers::symbol(Token type) {
         data.type = type;
 
         return true;
-    };
-}
-
-std::function<bool(ParserData &data)> TokenParsers::keyword(Token token, const std::string keyword)
-{
-    return [=](ParserData &data) {
-        if (matchingParser(data.cursor, data.source, keyword, keyword.length())) {
-            data.length = keyword.length();
-            data.type = token;
-
-            return true;
-        } else {
-            return false;
-        }
     };
 }
 

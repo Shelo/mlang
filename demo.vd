@@ -1,16 +1,22 @@
-import "Shopping";
+module Main
 
-main (string[] args)
+import class ".FSDir.Director"
+
+void main(string[] argv)
 {
-    Shopping shopping = null;
+    Director director = Director::new();
 
-    // define a single character.
-    char c = 'a';
+    director.loadDirective(Edit::class);
+    director.loadDirective(Create::class);
+    director.loadDirective(Read::class);
+    director.loadDirective(Remove::class);
+    director.loadDirective(File::class);
 
-    shopping.addItem("Pants", 12.5f);
-    shopping.addItem("T-Shirt", 6.5f);
+    director.loadProcedure(Append::class);
+    director.loadProcedure(CopyTo::class);
+    director.loadProcedure(Replace::class);
+    director.loadProcedure(Set::class);
+    director.loadProcedure(ChMod::class);
 
-    shopping.valid = true;
-
-    shopping.getItemsAtPrice(6.5f);
+    director.loadArguments();
 }

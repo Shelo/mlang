@@ -15,6 +15,7 @@ enum class Token : int
     CHARACTER,
     EXCLAMATION_MARK,
     QUESTION_MARK,
+    COLON,
 
     // start/stop carets.
     PARENTHESIS_START,
@@ -34,11 +35,14 @@ enum class Token : int
     KW_VOID,
     KW_INT,
     KW_FLOAT,
+    KW_DOUBLE,
     KW_STRING,
     KW_BOOL,
     KW_CLASS,
+    KW_MODULE,
     KW_ANNOTATION,
     KW_RETURN,
+    KW_STATIC,
     KW_UNSIGNED,
     SINGLE_LINE_COMMENT,
     PLUS,

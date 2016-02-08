@@ -1,16 +1,13 @@
 #ifndef SLAN2_TOKENPARSERS_H
 #define SLAN2_TOKENPARSERS_H
 
-#include "Tokenizer.hpp"
+#include "Lexer.hpp"
 #include "Types.hpp"
 
 struct ParserData;
 
 class TokenParsers
 {
-public:
-    static bool matchingParser(size_t cursor, std::string *code, const std::string &keyword, size_t length);
-
 public:
     static bool whitespace(ParserData &data);
 
@@ -20,7 +17,6 @@ public:
     static bool singleLineComment(ParserData &data);
 
     static std::function<bool (ParserData &data)> symbol(Token token);
-    static std::function<bool (ParserData &data)> keyword(Token token, const std::string keyword);
 };
 
 #endif //SLAN2_TOKENPARSERS_H

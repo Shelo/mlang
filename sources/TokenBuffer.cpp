@@ -39,3 +39,13 @@ size_t TokenBuffer::getCurrentIndex()
 {
     return tokens.size() - 1;
 }
+
+size_t TokenBuffer::size()
+{
+    return tokens.size();
+}
+
+TokenIndex &TokenBuffer::at(size_t index)
+{
+    return tokens.at(index);
+}

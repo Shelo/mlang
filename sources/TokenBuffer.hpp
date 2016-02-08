@@ -28,6 +28,10 @@ public:
 
     void push();
 
+    size_t size();
+
+    TokenIndex & at(size_t index);
+
     std::string substring(size_t i, std::string *code);
 
     void debug(std::string *code);
